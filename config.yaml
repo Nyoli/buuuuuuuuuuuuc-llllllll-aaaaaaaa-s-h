@@ -1,5 +1,5 @@
 allow-lan: true
-external-controller: '0.0.0.0:9090'
+external-controller: "0.0.0.0:9090"
 
 port: 7892
 socks-port: 7891
@@ -11,7 +11,6 @@ unified-delay: true
 tcp-concurrent: true
 find-process-mode: strict
 keep-alive-interval: 15
-
 
 # --- 存储与控制 ---
 profile:
@@ -30,7 +29,7 @@ sniffer:
       ports: [443, 8443]
     QUIC:
       ports: [443, 8443]
-  skip-domain: ['+.push.apple.com']
+  skip-domain: ["+.push.apple.com"]
 
 tun:
   enable: true
@@ -40,7 +39,7 @@ tun:
   strict-route: true
   dns-hijack:
     - any:53
-  device: Mihomo
+  device: Mihomo0
   mtu: 1500
 
 dns:
@@ -50,18 +49,18 @@ dns:
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter:
-    - '+.lan'
-    - '+.local'
-    - '+.localdomain'
-    - '+.localhost'
-    - '+.home.arpa'
-    - 'time.*.com'
-    - 'ntp.*.com'
-    - '*.ntp.org'
-    - 'router.asus.com'
-    - 'tplogin.cn'
-    - '+.direct'
-    - '+.music.163.com'
+    - "+.lan"
+    - "+.local"
+    - "+.localdomain"
+    - "+.localhost"
+    - "+.home.arpa"
+    - "time.*.com"
+    - "ntp.*.com"
+    - "*.ntp.org"
+    - "router.asus.com"
+    - "tplogin.cn"
+    - "+.direct"
+    - "+.music.163.com"
   default-nameserver:
     - 223.5.5.5
     - 119.29.29.29
@@ -74,7 +73,7 @@ dns:
     geosite:cn,private:
       - https://223.5.5.5/dns-query
       - https://doh.pub/dns-query
-    'your_domain_name':          
+    "your_domain_name":
       - https://223.5.5.5/dns-query
   respect-rules: true
   prefer-h3: false
@@ -82,7 +81,7 @@ dns:
 proxies:
   - name: "Moe-Vless"
     type: vless
-    server: your_domain_name
+    server: your_ip
     port: your_port
     flow: xtls-rprx-vision
     uuid: your_uuid
@@ -90,54 +89,88 @@ proxies:
     tls: true
     network: tcp
     servername: your_servername
-    reality-opts: {public-key: your_public-key, short-id: your_short-id}
+    reality-opts:
+      public-key: your_public-key
+      short-id: your_short-id
     client-fingerprint: firefox
 
   - name: "Moe-Tuic"
-    type: tuic
     server: your_domain_name
+    sni: your_domain_name
+    type: tuic
     port: your_port
     uuid: your_uuid
     password: your_password
     alpn: [h3]
-    sni: your_sni
     disable-sni: false
-    reduce-rtt: true
-    skip-cert-verify: true
-    congestion-controller: bbr
-    
-  - name: "Moe-Anytls"
-    password: your_password
-    port: your_port
-    server: your_domain_name
     skip-cert-verify: false
-    sni: your_domain_name
-    tls: true
+    congestion-controller: bbr
+    udp-relay-mode: native
+    # reduce-rtt: true
+
+  - name: "Moe-Anytls"
     type: anytls
+    server: your_domain_name
+    sni: your_domain_name
+    port: your_port
+    password: your_password
+    skip-cert-verify: false
+    udp: true
+    idle-session-check-interval: 30
+    idle-session-timeout: 30
     client-fingerprint: firefox
+
+  - name: "Moe-Hy2"
+    type: hysteria2
+    server: your_domain_name
+    port: your_port
+    ports: your_port-your_port
+    password: your_password
+    alpn:
+      - h3
+    sni: your_domain_name
+    skip-cert-verify: false
+    fast-open: true
+
+  - name: "Moe-Vmess"
+    type: vmess
+    server: your_domain_name
+    port: your_port
+    uuid: your_uuid
+    alterId: 0
+    cipher: auto
+    udp: true
+    tls: true
+    network: ws
+    servername: your_domain_name
+    ws-opts:
+      path: "your_path"
+      headers:
+        Host: your_domain_name
 
 proxy-groups:
   - name: 主代理
     type: select
-    proxies: [自动选择, Moe-Vless, Moe-Tuic, Moe-Anytls, DIRECT]
+    proxies:
+      [自动选择, Moe-Vless, Moe-Tuic, Moe-Anytls, Moe-Hy2, Moe-Vmess, DIRECT]
 
   - name: 自动选择
     type: url-test
     url: http://www.gstatic.com/generate_204
     interval: 300
-    proxies: [Moe-Anytls, Moe-Tuic, Moe-Vless]
+    proxies: [Moe-Anytls, Moe-Tuic, Moe-Vless, Moe-Hy2, Moe-Vmess]
 
   - name: Google
     type: select
-    proxies: [主代理, Moe-Anytls, Moe-Tuic, Moe-Vless]
+    proxies: [主代理, Moe-Anytls, Moe-Tuic, Moe-Vless, Moe-Hy2, Moe-Vmess]
 
   - name: Telegram
     type: select
-    proxies: [主代理, Moe-Anytls, Moe-Tuic, Moe-Vless]
+    proxies: [主代理, Moe-Anytls, Moe-Tuic, Moe-Vless, Moe-Hy2, Moe-Vmess]
 
   - name: OpenAI
     type: select
-    proxies: [主代理, Moe-Anytls, Moe-Tuic, Moe-Vless]
+    proxies: [主代理, Moe-Anytls, Moe-Tuic, Moe-Vless, Moe-Hy2, Moe-Vmess]
 
   - name: Bilibili
     type: select
@@ -162,31 +195,31 @@ proxy-groups:
   - name: Bahamut
     type: select
     proxies: [主代理]
-    
+
   - name: Discord
     type: select
     proxies: [主代理]
-    
+
   - name: Netflix
     type: select
     proxies: [主代理]
-    
+
   - name: Speedtest
     type: select
     proxies: [主代理]
-    
+
   - name: Spotify
     type: select
     proxies: [主代理]
-    
+
   - name: Steam
     type: select
     proxies: [主代理, DIRECT]
-    
+
   - name: TikTok
     type: select
     proxies: [主代理]
-    
+
   - name: GoogleFCM
     type: select
     proxies: [主代理, DIRECT]
@@ -196,56 +229,54 @@ rule-providers:
     type: http
     behavior: domain
     format: mrs
-    url: 'https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/China/China-Site.mrs'
+    url: "https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/China/China-Site.mrs"
     path: ./ruleset/China-Site.mrs
     interval: 86400
     proxy: 主代理
-    
+
   China-IP:
     type: http
     behavior: ipcidr
     format: mrs
-    url: 'https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/China/China-IP.mrs'
+    url: "https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/China/China-IP.mrs"
     path: ./ruleset/China-IP.mrs
     interval: 86400
     proxy: 主代理
-    
+
   GFWList-Site:
     type: http
     behavior: domain
     format: mrs
-    url: 'https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/GFWList/GFWList-Site.mrs'
+    url: "https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/GFWList/GFWList-Site.mrs"
     path: ./ruleset/GFWList-Site.mrs
     interval: 86400
     proxy: 主代理
-    
+
   Google-Site:
     type: http
     behavior: domain
     format: mrs
-    url: 'https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/Google/Google-Site.mrs'
+    url: "https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/Google/Google-Site.mrs"
     path: ./ruleset/Google-Site.mrs
     interval: 86400
     proxy: 主代理
-    
+
   Local-IP:
     type: http
     behavior: ipcidr
     format: mrs
-    url: 'https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/Local/Local-IP.mrs'
+    url: "https://cdn.jsdmirror.com/gh/HosheaPDNX/rule-set@V2.0.0/mihomo/Local/Local-IP.mrs"
     path: ./ruleset/Local-IP.mrs
     interval: 86400
     proxy: 主代理
 
 rules:
-  - 'AND,((DST-PORT,443),(NETWORK,UDP)),REJECT'
-  - 'DOMAIN,your_domain_name,DIRECT'
-  - 'DOMAIN-KEYWORD,googleapis,Google'
-  - 'RULE-SET,Google-Site,Google'
-  - 'RULE-SET,GFWList-Site,黑名单网站'
-  - 'RULE-SET,China-Site,中国大陆网站'
-  - 'RULE-SET,Local-IP,DIRECT,no-resolve'
-  - 'RULE-SET,China-IP,中国大陆网站,no-resolve'
-  - 'GEOIP,CN,中国大陆网站,no-resolve'
-  - 'MATCH,主代理'
-
+  - "AND,((DST-PORT,443),(NETWORK,UDP)),REJECT"
+  - "DOMAIN-KEYWORD,googleapis,Google"
+  - "RULE-SET,Google-Site,Google"
+  - "RULE-SET,GFWList-Site,黑名单网站"
+  - "RULE-SET,China-Site,中国大陆网站"
+  - "RULE-SET,Local-IP,DIRECT,no-resolve"
+  - "RULE-SET,China-IP,中国大陆网站,no-resolve"
+  - "GEOIP,CN,中国大陆网站,no-resolve"
+  - "MATCH,主代理"
